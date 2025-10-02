@@ -111,7 +111,16 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### October 2, 2025
-- **Focus Sounds Fixed**: Replaced external audio URLs with local audio file approach. Users can download free CC0 ambient sounds from Pixabay and place them in `/client/public/sounds/`. Instructions provided in that folder's README.
+- **Focus Sounds - Web Audio API Implementation**: Complete rewrite of focus sounds using Web Audio API for instant, file-free ambient sound generation
+  - Implemented 5 ambient sound types: Rain Sound, Brown Noise, Ocean Waves, White Noise, Pink Noise
+  - Each sound uses oscillator nodes and filters to synthesize audio in real-time
+  - Fixed AudioContext autoplay policy compliance by adding explicit `audioContext.resume()` call
+  - Sounds now work instantly without any file downloads or external dependencies
+  - Volume and mute controls fully functional
+- **Mock Data Removal**: Cleaned up all placeholder/demo data from the UI
+  - Removed hardcoded timer statistics (sessions, subjects, tasks)
+  - Removed mock calendar event indicators
+  - Replaced with neutral placeholders until real user data is available
 - **Subjects Management**: Added complete CRUD functionality for subjects with custom icons (emojis), colors, and weekly target hours
 - **Motivation Page**: Created dedicated page with rotating motivational quotes and science-backed study tips with emojis
 - **Student Profile**: Added major and hobbies fields to user profile with easy management UI
