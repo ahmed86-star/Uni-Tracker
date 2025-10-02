@@ -1,14 +1,13 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { useTimer } from "@/hooks/useTimer";
+import { useFocusSounds, type SoundType } from "@/hooks/useFocusSounds";
 import { Play, Pause, RotateCcw, Settings, Volume2, VolumeX } from "lucide-react";
 
 export default function TimerSection() {
-  const [focusSoundVolume, setFocusSoundVolume] = useState(60);
-  const [isMuted, setIsMuted] = useState(false);
+  const { activeSound, volume, isMuted, setVolume, setIsMuted, toggleSound } = useFocusSounds();
   
   const pomodoroTimer = useTimer(25 * 60); // 25 minutes
   const studyTimer = useTimer(0, true); // Stopwatch mode
@@ -255,11 +254,12 @@ export default function TimerSection() {
             {focusSounds.map((sound) => (
               <Button
                 key={sound.id}
-                variant="ghost"
+                variant={activeSound === sound.id ? "default" : "ghost"}
                 className="flex flex-col items-center gap-2 p-4 h-auto"
+                onClick={() => toggleSound(sound.id as SoundType)}
                 data-testid={`button-sound-${sound.id}`}
               >
-                <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center text-2xl">
+                <div className={`w-12 h-12 ${activeSound === sound.id ? 'bg-primary-foreground/20' : 'bg-primary/10'} ${activeSound === sound.id ? 'text-primary-foreground' : 'text-primary'} rounded-full flex items-center justify-center text-2xl`}>
                   {sound.icon}
                 </div>
                 <span className="text-sm font-medium">{sound.name}</span>
@@ -278,8 +278,8 @@ export default function TimerSection() {
             </Button>
             <div className="flex-1">
               <Slider
-                value={[focusSoundVolume]}
-                onValueChange={(value) => setFocusSoundVolume(value[0])}
+                value={[volume]}
+                onValueChange={(value) => setVolume(value[0])}
                 max={100}
                 step={1}
                 className="flex-1"
@@ -287,7 +287,7 @@ export default function TimerSection() {
               />
             </div>
             <span className="text-sm font-medium w-12 text-right" data-testid="text-volume">
-              {focusSoundVolume}%
+              {volume}%
             </span>
           </div>
         </CardContent>
