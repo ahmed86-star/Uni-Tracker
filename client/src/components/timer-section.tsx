@@ -14,12 +14,11 @@ export default function TimerSection() {
   const countdownTimer = useTimer(30 * 60); // 30 minutes
 
   const focusSounds = [
-    { icon: '🌧️', name: 'Rain', id: 'rain' },
-    { icon: '🔥', name: 'Fireplace', id: 'fireplace' },
-    { icon: '💨', name: 'Wind', id: 'wind' },
-    { icon: '☕', name: 'Cafe', id: 'cafe' },
-    { icon: '🌲', name: 'Forest', id: 'forest' },
-    { icon: '🔊', name: 'White Noise', id: 'whitenoise' },
+    { icon: '🌧️', name: 'Rain Sound', id: 'rain' },
+    { icon: '🎵', name: 'Brown Noise', id: 'brownnoise' },
+    { icon: '🌊', name: 'Ocean Waves', id: 'ocean' },
+    { icon: '⚪', name: 'White Noise', id: 'whitenoise' },
+    { icon: '💗', name: 'Pink Noise', id: 'pinknoise' },
   ];
 
   const formatTime = (seconds: number) => {
@@ -129,7 +128,7 @@ export default function TimerSection() {
             <div className="mt-6 pt-6 border-t border-border">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Sessions today</span>
-                <span className="font-medium" data-testid="text-pomodoro-sessions">3/8</span>
+                <span className="font-medium" data-testid="text-pomodoro-sessions">0</span>
               </div>
             </div>
           </CardContent>
@@ -179,7 +178,7 @@ export default function TimerSection() {
             <div className="mt-6 pt-6 border-t border-border">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subject</span>
-                <span className="font-medium" data-testid="text-study-subject">Mathematics</span>
+                <span className="font-medium text-muted-foreground" data-testid="text-study-subject">No subject</span>
               </div>
             </div>
           </CardContent>
@@ -229,7 +228,7 @@ export default function TimerSection() {
             <div className="mt-6 pt-6 border-t border-border">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Task</span>
-                <span className="font-medium" data-testid="text-countdown-task">Submit Essay</span>
+                <span className="font-medium text-muted-foreground" data-testid="text-countdown-task">No task</span>
               </div>
             </div>
           </CardContent>

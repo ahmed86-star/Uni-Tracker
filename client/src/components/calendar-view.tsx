@@ -41,17 +41,12 @@ export default function CalendarView() {
            today.getFullYear() === year;
   };
   
-  // Mock event indicators
+  // No mock events - will be replaced with real task data
   const hasEvents = (day: number) => {
-    const eventDays = [5, 7, 12, 13];
-    return eventDays.includes(day);
+    return false;
   };
   
   const getEventColor = (day: number) => {
-    if (day === 5) return 'bg-primary';
-    if (day === 7) return 'bg-destructive';
-    if (day === 12) return 'bg-primary';
-    if (day === 13) return 'bg-accent';
     return 'bg-primary';
   };
 
