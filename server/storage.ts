@@ -103,7 +103,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(tasks)
       .where(and(eq(tasks.id, id), eq(tasks.userId, userId)));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async getNotes(userId: string): Promise<Note[]> {
@@ -132,23 +132,29 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(notes)
       .where(and(eq(notes.id, id), eq(notes.userId, userId)));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async getStudySessions(userId: string, startDate?: Date, endDate?: Date): Promise<StudySession[]> {
-    let query = db.select().from(studySessions).where(eq(studySessions.userId, userId));
-    
     if (startDate && endDate) {
-      query = query.where(
-        and(
-          eq(studySessions.userId, userId),
-          gte(studySessions.startTime, startDate),
-          lte(studySessions.startTime, endDate)
+      return await db
+        .select()
+        .from(studySessions)
+        .where(
+          and(
+            eq(studySessions.userId, userId),
+            gte(studySessions.startTime, startDate),
+            lte(studySessions.startTime, endDate)
+          )
         )
-      );
+        .orderBy(desc(studySessions.startTime));
     }
     
-    return await query.orderBy(desc(studySessions.startTime));
+    return await db
+      .select()
+      .from(studySessions)
+      .where(eq(studySessions.userId, userId))
+      .orderBy(desc(studySessions.startTime));
   }
 
   async createStudySession(session: InsertStudySession): Promise<StudySession> {
