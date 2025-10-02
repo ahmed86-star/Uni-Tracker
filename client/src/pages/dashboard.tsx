@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/navigation";
 import TimerSection from "@/components/timer-section";
@@ -7,12 +8,17 @@ import NotesPanel from "@/components/notes-panel";
 import StatsDashboard from "@/components/stats-dashboard";
 import DemoBanner from "@/components/demo-banner";
 import GuidedTour from "@/components/guided-tour";
+import Subjects from "./Subjects";
+import Motivation from "./Motivation";
+import Profile from "./Profile";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, CheckCircle, Flame, Brain } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Clock, CheckCircle, Flame, Brain, Home, BookOpen, Sparkles, User } from "lucide-react";
 
 export default function Dashboard() {
   const { user, isLoading } = useAuth();
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   const { data: stats } = useQuery({
     queryKey: ['/api/stats'],
@@ -38,6 +44,31 @@ export default function Dashboard() {
       <GuidedTour />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-5 mb-8" data-testid="tabs-list">
+            <TabsTrigger value="dashboard" className="gap-2" data-testid="tab-dashboard">
+              <Home className="w-4 h-4" />
+              <span className="hidden sm:inline">Dashboard</span>
+            </TabsTrigger>
+            <TabsTrigger value="subjects" className="gap-2" data-testid="tab-subjects">
+              <BookOpen className="w-4 h-4" />
+              <span className="hidden sm:inline">Subjects</span>
+            </TabsTrigger>
+            <TabsTrigger value="motivation" className="gap-2" data-testid="tab-motivation">
+              <Sparkles className="w-4 h-4" />
+              <span className="hidden sm:inline">Motivation</span>
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="gap-2" data-testid="tab-profile">
+              <User className="w-4 h-4" />
+              <span className="hidden sm:inline">Profile</span>
+            </TabsTrigger>
+            <TabsTrigger value="stats" className="gap-2" data-testid="tab-stats">
+              <Brain className="w-4 h-4" />
+              <span className="hidden sm:inline">Stats</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="dashboard" className="space-y-8" data-testid="content-dashboard">
         {/* Quick Stats Overview */}
         <section className="mb-8" id="dashboard">
           <div className="flex items-center justify-between mb-6">
@@ -136,8 +167,24 @@ export default function Dashboard() {
           <CalendarView />
           <NotesPanel />
         </div>
-        
-        <StatsDashboard />
+          </TabsContent>
+
+          <TabsContent value="subjects" data-testid="content-subjects">
+            <Subjects />
+          </TabsContent>
+
+          <TabsContent value="motivation" data-testid="content-motivation">
+            <Motivation />
+          </TabsContent>
+
+          <TabsContent value="profile" data-testid="content-profile">
+            <Profile />
+          </TabsContent>
+
+          <TabsContent value="stats" data-testid="content-stats">
+            <StatsDashboard />
+          </TabsContent>
+        </Tabs>
       </main>
       
       <DemoBanner />

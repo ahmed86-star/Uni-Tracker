@@ -31,6 +31,8 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  major: varchar("major"),
+  hobbies: text("hobbies").array(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -75,6 +77,18 @@ export const studySessions = pgTable("study_sessions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Subjects table
+export const subjects = pgTable("subjects", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: varchar("name").notNull(),
+  color: varchar("color").default('#8B5CF6'), // hex color for UI
+  icon: varchar("icon").default('📚'), // emoji icon
+  targetHours: integer("target_hours").default(0), // weekly target study hours
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // User preferences table
 export const userPreferences = pgTable("user_preferences", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -96,6 +110,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   tasks: many(tasks),
   notes: many(notes),
   studySessions: many(studySessions),
+  subjects: many(subjects),
   preferences: one(userPreferences),
 }));
 
@@ -127,6 +142,13 @@ export const userPreferencesRelations = relations(userPreferences, ({ one }) => 
   }),
 }));
 
+export const subjectsRelations = relations(subjects, ({ one }) => ({
+  user: one(users, {
+    fields: [subjects.userId],
+    references: [users.id],
+  }),
+}));
+
 // Schemas
 export const insertTaskSchema = createInsertSchema(tasks).omit({
   id: true,
@@ -151,6 +173,17 @@ export const insertUserPreferencesSchema = createInsertSchema(userPreferences).o
   updatedAt: true,
 });
 
+export const insertSubjectSchema = createInsertSchema(subjects).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateUserProfileSchema = z.object({
+  major: z.string().optional(),
+  hobbies: z.array(z.string()).optional(),
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -162,3 +195,6 @@ export type StudySession = typeof studySessions.$inferSelect;
 export type InsertStudySession = z.infer<typeof insertStudySessionSchema>;
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
+export type Subject = typeof subjects.$inferSelect;
+export type InsertSubject = z.infer<typeof insertSubjectSchema>;
+export type UpdateUserProfile = z.infer<typeof updateUserProfileSchema>;

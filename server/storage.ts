@@ -4,6 +4,7 @@ import {
   notes,
   studySessions,
   userPreferences,
+  subjects,
   type User,
   type UpsertUser,
   type Task,
@@ -14,6 +15,9 @@ import {
   type InsertStudySession,
   type UserPreferences,
   type InsertUserPreferences,
+  type Subject,
+  type InsertSubject,
+  type UpdateUserProfile,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte, count } from "drizzle-orm";
@@ -22,27 +26,35 @@ export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  updateUserProfile(userId: string, profile: UpdateUserProfile): Promise<User | undefined>;
+  deleteAllUserData(userId: string): Promise<boolean>;
   
   // Task operations
   getTasks(userId: string): Promise<Task[]>;
   createTask(task: InsertTask): Promise<Task>;
-  updateTask(id: string, task: Partial<InsertTask>): Promise<Task | undefined>;
+  updateTask(id: string, userId: string, task: Partial<InsertTask>): Promise<Task | undefined>;
   deleteTask(id: string, userId: string): Promise<boolean>;
   
   // Note operations
   getNotes(userId: string): Promise<Note[]>;
   createNote(note: InsertNote): Promise<Note>;
-  updateNote(id: string, note: Partial<InsertNote>): Promise<Note | undefined>;
+  updateNote(id: string, userId: string, note: Partial<InsertNote>): Promise<Note | undefined>;
   deleteNote(id: string, userId: string): Promise<boolean>;
   
   // Study session operations
   getStudySessions(userId: string, startDate?: Date, endDate?: Date): Promise<StudySession[]>;
   createStudySession(session: InsertStudySession): Promise<StudySession>;
-  updateStudySession(id: string, session: Partial<InsertStudySession>): Promise<StudySession | undefined>;
+  updateStudySession(id: string, userId: string, session: Partial<InsertStudySession>): Promise<StudySession | undefined>;
   
   // User preferences operations
   getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
   upsertUserPreferences(preferences: InsertUserPreferences): Promise<UserPreferences>;
+  
+  // Subject operations
+  getSubjects(userId: string): Promise<Subject[]>;
+  createSubject(subject: InsertSubject): Promise<Subject>;
+  updateSubject(id: string, userId: string, subject: Partial<InsertSubject>): Promise<Subject | undefined>;
+  deleteSubject(id: string, userId: string): Promise<boolean>;
   
   // Stats operations
   getUserStats(userId: string): Promise<{
@@ -77,6 +89,41 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async updateUserProfile(userId: string, profile: UpdateUserProfile): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ ...profile, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async deleteAllUserData(userId: string): Promise<boolean> {
+    try {
+      // Delete in correct order due to foreign key constraints
+      await db.delete(studySessions).where(eq(studySessions.userId, userId));
+      await db.delete(notes).where(eq(notes.userId, userId));
+      await db.delete(tasks).where(eq(tasks.userId, userId));
+      await db.delete(subjects).where(eq(subjects.userId, userId));
+      await db.delete(userPreferences).where(eq(userPreferences.userId, userId));
+      
+      // Reset user profile data but keep the account
+      await db
+        .update(users)
+        .set({ 
+          major: null, 
+          hobbies: null,
+          updatedAt: new Date() 
+        })
+        .where(eq(users.id, userId));
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting user data:', error);
+      return false;
+    }
+  }
+
   async getTasks(userId: string): Promise<Task[]> {
     return await db
       .select()
@@ -90,11 +137,11 @@ export class DatabaseStorage implements IStorage {
     return newTask;
   }
 
-  async updateTask(id: string, task: Partial<InsertTask>): Promise<Task | undefined> {
+  async updateTask(id: string, userId: string, task: Partial<InsertTask>): Promise<Task | undefined> {
     const [updatedTask] = await db
       .update(tasks)
       .set({ ...task, updatedAt: new Date() })
-      .where(eq(tasks.id, id))
+      .where(and(eq(tasks.id, id), eq(tasks.userId, userId)))
       .returning();
     return updatedTask;
   }
@@ -119,11 +166,11 @@ export class DatabaseStorage implements IStorage {
     return newNote;
   }
 
-  async updateNote(id: string, note: Partial<InsertNote>): Promise<Note | undefined> {
+  async updateNote(id: string, userId: string, note: Partial<InsertNote>): Promise<Note | undefined> {
     const [updatedNote] = await db
       .update(notes)
       .set({ ...note, updatedAt: new Date() })
-      .where(eq(notes.id, id))
+      .where(and(eq(notes.id, id), eq(notes.userId, userId)))
       .returning();
     return updatedNote;
   }
@@ -162,11 +209,11 @@ export class DatabaseStorage implements IStorage {
     return newSession;
   }
 
-  async updateStudySession(id: string, session: Partial<InsertStudySession>): Promise<StudySession | undefined> {
+  async updateStudySession(id: string, userId: string, session: Partial<InsertStudySession>): Promise<StudySession | undefined> {
     const [updatedSession] = await db
       .update(studySessions)
       .set(session)
-      .where(eq(studySessions.id, id))
+      .where(and(eq(studySessions.id, id), eq(studySessions.userId, userId)))
       .returning();
     return updatedSession;
   }
@@ -192,6 +239,35 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return upsertedPreferences;
+  }
+
+  async getSubjects(userId: string): Promise<Subject[]> {
+    return await db
+      .select()
+      .from(subjects)
+      .where(eq(subjects.userId, userId))
+      .orderBy(desc(subjects.createdAt));
+  }
+
+  async createSubject(subject: InsertSubject): Promise<Subject> {
+    const [newSubject] = await db.insert(subjects).values(subject).returning();
+    return newSubject;
+  }
+
+  async updateSubject(id: string, userId: string, subject: Partial<InsertSubject>): Promise<Subject | undefined> {
+    const [updatedSubject] = await db
+      .update(subjects)
+      .set({ ...subject, updatedAt: new Date() })
+      .where(and(eq(subjects.id, id), eq(subjects.userId, userId)))
+      .returning();
+    return updatedSubject;
+  }
+
+  async deleteSubject(id: string, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(subjects)
+      .where(and(eq(subjects.id, id), eq(subjects.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
   }
 
   async getUserStats(userId: string): Promise<{

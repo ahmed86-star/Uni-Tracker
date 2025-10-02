@@ -2,7 +2,7 @@
 
 ## Overview
 
-Uni Tracker is a comprehensive student productivity application designed to help university students manage their tasks, track study sessions, organize notes, and monitor academic progress. The application combines timer-based study sessions (Pomodoro, stopwatch, countdown), task management with a Kanban board interface, note-taking capabilities, and detailed statistics tracking to provide an all-in-one study companion.
+Uni Tracker is a comprehensive student productivity application designed to help university students manage their tasks, track study sessions, organize notes, and monitor academic progress. The application features visual onboarding with guided tours, demo mode with sample data, smart timers (Pomodoro, Study Timer, Countdown), task management (Kanban board with drag-and-drop), calendar view, quick notes, subjects management, motivation page with quotes and study tips, student profile with major and hobbies, statistics dashboard with progress tracking and achievements, dark mode, focus sounds, complete data reset functionality, and Google authentication via Replit Auth.
 
 ## User Preferences
 
@@ -46,10 +46,11 @@ Preferred communication style: Simple, everyday language.
 - Centralized error handling and request logging
 
 **Database Schema:**
-- Users table for authentication and profile information
+- Users table for authentication and profile information (now includes major and hobbies fields)
 - Tasks table with status tracking (todo, in_progress, done), priority levels, and due dates
 - Notes table with tagging support for organization
 - Study sessions table for tracking different timer types (pomodoro, study, countdown)
+- Subjects table for managing student subjects with custom colors, icons, and weekly study targets
 - User preferences table for personalized settings
 - Session storage table for express-session persistence
 
@@ -106,3 +107,19 @@ Preferred communication style: Simple, everyday language.
 - **tsx** for TypeScript execution in development
 - Vite handles client-side bundling with React plugin
 - Static assets served from dist/public in production
+
+## Recent Changes
+
+### October 2, 2025
+- **Focus Sounds Fixed**: Replaced external audio URLs with local audio file approach. Users can download free CC0 ambient sounds from Pixabay and place them in `/client/public/sounds/`. Instructions provided in that folder's README.
+- **Subjects Management**: Added complete CRUD functionality for subjects with custom icons (emojis), colors, and weekly target hours
+- **Motivation Page**: Created dedicated page with rotating motivational quotes and science-backed study tips with emojis
+- **Student Profile**: Added major and hobbies fields to user profile with easy management UI
+- **Complete Data Reset**: Implemented comprehensive data deletion functionality that clears all user data (tasks, notes, subjects, sessions, profile) while preserving the account
+- **Tab-based Navigation**: Reorganized dashboard with 5 main tabs (Dashboard, Subjects, Motivation, Profile, Stats) for better organization
+- **Database Schema Updates**: Added subjects table, updated users table with major/hobbies fields
+- **API Routes Added**: 
+  - `/api/subjects` (GET, POST) - List and create subjects
+  - `/api/subjects/:id` (PUT, DELETE) - Update and delete subjects
+  - `/api/profile` (PUT) - Update user profile (major, hobbies)
+  - `/api/data/reset` (POST) - Complete data reset
