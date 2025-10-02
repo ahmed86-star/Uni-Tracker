@@ -2,59 +2,82 @@ import { useState, useEffect, useRef } from 'react';
 
 export type SoundType = 'rain' | 'fireplace' | 'wind' | 'cafe' | 'forest' | 'whitenoise' | 'none';
 
-const soundUrls: Record<SoundType, string> = {
-  rain: 'https://assets.mixkit.co/active_storage/sfx/2393/2393-preview.mp3',
-  fireplace: 'https://assets.mixkit.co/active_storage/sfx/2404/2404-preview.mp3',
-  wind: 'https://assets.mixkit.co/active_storage/sfx/2450/2450-preview.mp3',
-  cafe: 'https://assets.mixkit.co/active_storage/sfx/2460/2460-preview.mp3',
-  forest: 'https://assets.mixkit.co/active_storage/sfx/2462/2462-preview.mp3',
-  whitenoise: 'https://assets.mixkit.co/active_storage/sfx/2473/2473-preview.mp3',
-  none: '',
-};
-
 export function useFocusSounds() {
   const [activeSound, setActiveSound] = useState<SoundType>('none');
   const [volume, setVolume] = useState(60);
   const [isMuted, setIsMuted] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const oscillatorRef = useRef<OscillatorNode | null>(null);
+  const gainNodeRef = useRef<GainNode | null>(null);
 
   useEffect(() => {
     if (activeSound === 'none') {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-        audioRef.current = null;
+      if (oscillatorRef.current) {
+        oscillatorRef.current.stop();
+        oscillatorRef.current = null;
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
       }
       return;
     }
 
-    const audio = new Audio();
-    audio.crossOrigin = 'anonymous';
-    audio.src = soundUrls[activeSound];
-    audio.loop = true;
-    audio.volume = isMuted ? 0 : volume / 100;
-    
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch((error) => {
-        console.error('Error playing sound:', error);
-      });
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    const audioContext = new AudioContext();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    const frequencies: Record<SoundType, number> = {
+      rain: 200,
+      fireplace: 150,
+      wind: 100,
+      cafe: 300,
+      forest: 250,
+      whitenoise: 0,
+      none: 0,
+    };
+
+    if (activeSound === 'whitenoise') {
+      const bufferSize = 4096;
+      const noiseNode = audioContext.createScriptProcessor(bufferSize, 1, 1);
+      noiseNode.onaudioprocess = (e) => {
+        const output = e.outputBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = Math.random() * 2 - 1;
+        }
+      };
+      noiseNode.connect(gainNode);
+    } else {
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(frequencies[activeSound], audioContext.currentTime);
+      oscillator.connect(gainNode);
+      oscillator.start();
+      oscillatorRef.current = oscillator;
     }
 
-    audioRef.current = audio;
+    gainNode.gain.setValueAtTime(isMuted ? 0 : volume / 300, audioContext.currentTime);
+    gainNode.connect(audioContext.destination);
+
+    audioContextRef.current = audioContext;
+    gainNodeRef.current = gainNode;
 
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-        audioRef.current = null;
+      if (oscillatorRef.current) {
+        oscillatorRef.current.stop();
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
       }
     };
   }, [activeSound]);
 
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume / 100;
+    if (gainNodeRef.current && audioContextRef.current) {
+      gainNodeRef.current.gain.setValueAtTime(
+        isMuted ? 0 : volume / 300,
+        audioContextRef.current.currentTime
+      );
     }
   }, [volume, isMuted]);
 

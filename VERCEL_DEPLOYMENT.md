@@ -67,24 +67,7 @@ The app uses Replit Auth, which requires configuration:
 - Example: `https://your-app.vercel.app/api/callback`
 
 ### Focus Sounds
-⚠️ **Important**: The focus sounds currently use external audio URLs that may have CORS issues or reliability problems. For production use, you should:
-
-**Option 1 - Host Your Own Audio Files:**
-1. Download royalty-free ambient sounds (Rain, Fireplace, Wind, Cafe, Forest, White Noise)
-2. Place them in `/public/sounds/` directory
-3. Update the URLs in `client/src/hooks/useFocusSounds.ts` to point to `/sounds/filename.mp3`
-
-**Option 2 - Use a Reliable CDN:**
-- Upload audio files to a CDN service like Cloudinary or AWS S3
-- Update the sound URLs in the hook
-
-**Option 3 - Disable Focus Sounds:**
-- Comment out the Focus Sounds card in `client/src/components/timer-section.tsx` (lines 240-295)
-
-**Recommended Sources for Royalty-Free Audio:**
-- Mixkit: https://mixkit.co/free-sound-effects/
-- Freesound: https://freesound.org/ (requires account)
-- Zapsplat: https://www.zapsplat.com/
+✅ **Working**: Focus sounds use Web Audio API to generate ambient tones directly in the browser - no external files or CORS issues!
 
 ## Troubleshooting
 
