@@ -123,3 +123,7 @@ Preferred communication style: Simple, everyday language.
   - `/api/subjects/:id` (PUT, DELETE) - Update and delete subjects
   - `/api/profile` (PUT) - Update user profile (major, hobbies)
   - `/api/data/reset` (POST) - Complete data reset
+- **Critical Security Fixes**: Fixed multi-tenant security vulnerabilities in all update endpoints
+  - All PUT routes (tasks, notes, study sessions, subjects) now properly validate user ownership
+  - Storage layer enforces userId scoping in WHERE clauses to prevent cross-tenant data modification
+  - Request body parsing excludes userId field to prevent tampering
