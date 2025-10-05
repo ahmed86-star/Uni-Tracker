@@ -1,18 +1,25 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertTaskSchema, insertNoteSchema, insertStudySessionSchema, insertUserPreferencesSchema, insertSubjectSchema, updateUserProfileSchema } from "@shared/schema";
 import { z } from "zod";
 
-export async function registerRoutes(app: Express): Promise<Server> {
-  await setupAuth(app);
+const DEMO_USER_ID = 'demo-user';
 
+export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const userId = DEMO_USER_ID;
+      let user = await storage.getUser(userId);
+      if (!user) {
+        user = await storage.upsertUser({
+          id: userId,
+          email: 'demo@unitracker.app',
+          firstName: 'Demo',
+          lastName: 'User',
+        });
+      }
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -21,9 +28,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Task routes
-  app.get('/api/tasks', isAuthenticated, async (req: any, res) => {
+  app.get('/api/tasks', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const tasks = await storage.getTasks(userId);
       res.json(tasks);
     } catch (error) {
@@ -32,9 +39,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/tasks', isAuthenticated, async (req: any, res) => {
+  app.post('/api/tasks', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const taskData = insertTaskSchema.parse({ ...req.body, userId });
       const task = await storage.createTask(taskData);
       res.json(task);
@@ -44,10 +51,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/tasks/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/tasks/:id', async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const taskData = insertTaskSchema.omit({ userId: true }).partial().parse(req.body);
       const task = await storage.updateTask(id, userId, taskData);
       if (!task) {
@@ -60,10 +67,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/tasks/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/tasks/:id', async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const deleted = await storage.deleteTask(id, userId);
       if (!deleted) {
         return res.status(404).json({ message: "Task not found" });
@@ -76,9 +83,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Note routes
-  app.get('/api/notes', isAuthenticated, async (req: any, res) => {
+  app.get('/api/notes', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const notes = await storage.getNotes(userId);
       res.json(notes);
     } catch (error) {
@@ -87,9 +94,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/notes', isAuthenticated, async (req: any, res) => {
+  app.post('/api/notes', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const noteData = insertNoteSchema.parse({ ...req.body, userId });
       const note = await storage.createNote(noteData);
       res.json(note);
@@ -99,10 +106,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/notes/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/notes/:id', async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const noteData = insertNoteSchema.omit({ userId: true }).partial().parse(req.body);
       const note = await storage.updateNote(id, userId, noteData);
       if (!note) {
@@ -115,10 +122,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/notes/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/notes/:id', async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const deleted = await storage.deleteNote(id, userId);
       if (!deleted) {
         return res.status(404).json({ message: "Note not found" });
@@ -131,9 +138,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Study session routes
-  app.get('/api/study-sessions', isAuthenticated, async (req: any, res) => {
+  app.get('/api/study-sessions', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const { startDate, endDate } = req.query;
       
       let start, end;
@@ -148,9 +155,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/study-sessions', isAuthenticated, async (req: any, res) => {
+  app.post('/api/study-sessions', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const sessionData = insertStudySessionSchema.parse({ ...req.body, userId });
       const session = await storage.createStudySession(sessionData);
       res.json(session);
@@ -160,10 +167,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/study-sessions/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/study-sessions/:id', async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const sessionData = insertStudySessionSchema.omit({ userId: true }).partial().parse(req.body);
       const session = await storage.updateStudySession(id, userId, sessionData);
       if (!session) {
@@ -177,9 +184,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User preferences routes
-  app.get('/api/preferences', isAuthenticated, async (req: any, res) => {
+  app.get('/api/preferences', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const preferences = await storage.getUserPreferences(userId);
       res.json(preferences);
     } catch (error) {
@@ -188,9 +195,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/preferences', isAuthenticated, async (req: any, res) => {
+  app.put('/api/preferences', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const preferencesData = insertUserPreferencesSchema.parse({ ...req.body, userId });
       const preferences = await storage.upsertUserPreferences(preferencesData);
       res.json(preferences);
@@ -201,9 +208,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Stats routes
-  app.get('/api/stats', isAuthenticated, async (req: any, res) => {
+  app.get('/api/stats', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const stats = await storage.getUserStats(userId);
       res.json(stats);
     } catch (error) {
@@ -213,9 +220,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Profile routes
-  app.put('/api/profile', isAuthenticated, async (req: any, res) => {
+  app.put('/api/profile', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const profileData = updateUserProfileSchema.parse(req.body);
       const user = await storage.updateUserProfile(userId, profileData);
       if (!user) {
@@ -229,9 +236,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Subject routes
-  app.get('/api/subjects', isAuthenticated, async (req: any, res) => {
+  app.get('/api/subjects', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const subjects = await storage.getSubjects(userId);
       res.json(subjects);
     } catch (error) {
@@ -240,9 +247,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/subjects', isAuthenticated, async (req: any, res) => {
+  app.post('/api/subjects', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const subjectData = insertSubjectSchema.parse({ ...req.body, userId });
       const subject = await storage.createSubject(subjectData);
       res.json(subject);
@@ -252,10 +259,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/subjects/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/subjects/:id', async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const subjectData = insertSubjectSchema.omit({ userId: true }).partial().parse(req.body);
       const subject = await storage.updateSubject(id, userId, subjectData);
       if (!subject) {
@@ -268,10 +275,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/subjects/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/subjects/:id', async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const deleted = await storage.deleteSubject(id, userId);
       if (!deleted) {
         return res.status(404).json({ message: "Subject not found" });
@@ -284,9 +291,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Data reset routes
-  app.post('/api/data/reset', isAuthenticated, async (req: any, res) => {
+  app.post('/api/data/reset', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const success = await storage.deleteAllUserData(userId);
       
       if (!success) {
@@ -301,9 +308,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Demo data routes (kept for backward compatibility)
-  app.post('/api/demo/clear', isAuthenticated, async (req: any, res) => {
+  app.post('/api/demo/clear', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = DEMO_USER_ID;
       const success = await storage.deleteAllUserData(userId);
       
       if (!success) {
