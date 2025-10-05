@@ -7,6 +7,15 @@ import { z } from "zod";
 const DEMO_USER_ID = 'demo-user';
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Stub auth routes (authentication disabled)
+  app.get('/api/login', (req, res) => {
+    res.redirect('/');
+  });
+
+  app.get('/api/logout', (req, res) => {
+    res.redirect('/');
+  });
+
   // Auth routes
   app.get('/api/auth/user', async (req: any, res) => {
     try {

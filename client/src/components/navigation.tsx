@@ -1,32 +1,9 @@
-import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/components/theme-provider";
 import { Moon, Sun, Home, Clock, CheckSquare, StickyNote, BarChart3 } from "lucide-react";
 
 export default function Navigation() {
-  const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
-
-  const handleLogout = () => {
-    window.location.href = "/api/logout";
-  };
-
-  const getInitials = (user: any) => {
-    if (user?.firstName && user?.lastName) {
-      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
-    }
-    if (user?.email) {
-      return user.email[0].toUpperCase();
-    }
-    return 'U';
-  };
 
   return (
     <nav className="sticky top-0 z-50 bg-card border-b border-border backdrop-blur-sm bg-opacity-95">
@@ -71,28 +48,10 @@ export default function Navigation() {
               {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
             
-            {/* User menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2" data-testid="button-user-menu">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.profileImageUrl} alt={user?.email} />
-                    <AvatarFallback className="bg-primary text-primary-foreground text-sm font-semibold">
-                      {getInitials(user)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="hidden md:inline text-sm font-medium">
-                    {user?.firstName || user?.email || 'User'}
-                  </span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleLogout} data-testid="button-logout">
-                  <i className="fas fa-sign-out-alt mr-2"></i>
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Authentication coming soon badge */}
+            <div className="px-3 py-1.5 bg-muted text-muted-foreground rounded-lg text-xs font-medium" data-testid="text-auth-status-nav">
+              Authentication coming soon
+            </div>
           </div>
         </div>
       </div>
