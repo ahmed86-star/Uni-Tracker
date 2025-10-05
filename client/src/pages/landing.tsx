@@ -3,15 +3,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Clock, Calendar, BarChart3 } from "lucide-react";
 
 export default function Landing() {
-  const handleSignIn = () => {
-    window.location.href = "/api/login";
-  };
-
-  const startTour = () => {
-    // This will be implemented with React Joyride
-    console.log("Start guided tour");
-  };
-
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -26,14 +17,9 @@ export default function Landing() {
             </div>
             
             <div className="flex items-center gap-3">
-              <Button variant="outline" onClick={startTour} data-testid="button-start-tour">
-                <i className="fas fa-route mr-2"></i>
-                Start Tour
-              </Button>
-              <Button onClick={handleSignIn} data-testid="button-sign-in">
-                <i className="fab fa-google mr-2"></i>
-                Sign in
-              </Button>
+              <div className="px-4 py-2 bg-muted text-muted-foreground rounded-lg text-sm font-medium" data-testid="text-auth-status">
+                Authentication coming soon
+              </div>
             </div>
           </div>
         </div>
@@ -55,14 +41,9 @@ export default function Landing() {
             </p>
             
             <div className="flex flex-wrap items-center justify-center gap-4 mb-12">
-              <Button size="lg" onClick={startTour} data-testid="button-guided-tour">
-                <i className="fas fa-route mr-2"></i>
-                Start Guided Tour
-              </Button>
-              <Button size="lg" variant="outline" onClick={handleSignIn} data-testid="button-google-signin">
-                <i className="fab fa-google mr-2"></i>
-                Sign in with Google
-              </Button>
+              <div className="px-6 py-3 bg-muted/50 border-2 border-dashed border-muted-foreground/30 rounded-lg text-muted-foreground font-medium" data-testid="text-auth-coming-soon">
+                Authentication coming soon
+              </div>
             </div>
           </div>
           
@@ -101,7 +82,7 @@ export default function Landing() {
           
           <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
             <i className="fas fa-info-circle"></i>
-            <span>New here? <button onClick={startTour} className="text-primary font-medium hover:underline">Take the interactive tour</button> to get started!</span>
+            <span>Explore the features above to get started with Uni Tracker!</span>
           </div>
         </div>
       </section>
