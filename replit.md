@@ -110,6 +110,28 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### October 6, 2025
+- **Enhanced Guided Tour**: Completely redesigned interactive onboarding experience
+  - 14 comprehensive steps covering all features with detailed instructions
+  - Step-by-step bullet points (3-5 per step) explaining how to use each feature
+  - Visual progress bar showing completion percentage
+  - Previous/Next navigation for better control
+  - Auto-scrolling to highlight relevant sections
+  - Improved welcome screen with feature preview grid
+  - Beautiful visual design with gradients, icons, and highlighted instruction boxes
+  - Covers: Dashboard, Tabs, Timers, Tasks, Notes, Stats, Subjects, Motivation, Profile, Dark Mode, and Authentication
+- **Navigation Fix**: Fixed hash anchor navigation issue
+  - Changed from hash anchors to smooth scroll buttons
+  - Prevents NotFound errors when clicking navigation links
+  - URL stays at "/" for better routing behavior
+- **TypeScript Type Safety**: Added UserStats type for API responses
+  - Fixed all TypeScript compilation errors
+  - App now builds cleanly for Railway deployment
+- **Railway Deployment Ready**: App is production-ready for deployment
+  - All features work in demo mode
+  - Database schema ready for migration
+  - Clean build with no errors
+
 ### October 2, 2025
 - **Focus Sounds - Web Audio API Implementation**: Complete rewrite of focus sounds using Web Audio API for instant, file-free ambient sound generation
   - Implemented 5 ambient sound types: Rain Sound, Brown Noise, Ocean Waves, White Noise, Pink Noise
