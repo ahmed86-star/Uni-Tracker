@@ -198,3 +198,14 @@ export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
 export type Subject = typeof subjects.$inferSelect;
 export type InsertSubject = z.infer<typeof insertSubjectSchema>;
 export type UpdateUserProfile = z.infer<typeof updateUserProfileSchema>;
+
+// User stats type
+export type UserStats = {
+  todayStudyTime: number;
+  completedTasksToday: number;
+  totalTasksToday: number;
+  currentStreak: number;
+  focusScore: number;
+  weeklyStudyTime: { day: string; hours: number }[];
+  subjectProgress: { subject: string; hours: number; tasksCompleted: number }[];
+};

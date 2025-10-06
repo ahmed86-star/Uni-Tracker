@@ -15,12 +15,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Clock, CheckCircle, Flame, Brain, Home, BookOpen, Sparkles, User } from "lucide-react";
+import type { UserStats } from "@shared/schema";
 
 export default function Dashboard() {
   const { user, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
 
-  const { data: stats } = useQuery({
+  const { data: stats } = useQuery<UserStats>({
     queryKey: ['/api/stats'],
     enabled: !!user,
   });

@@ -5,6 +5,13 @@ import { Moon, Sun, Home, Clock, CheckSquare, StickyNote, BarChart3 } from "luci
 export default function Navigation() {
   const { theme, toggleTheme } = useTheme();
 
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <nav className="sticky top-0 z-50 bg-card border-b border-border backdrop-blur-sm bg-opacity-95">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,26 +26,46 @@ export default function Navigation() {
           
           {/* Navigation items */}
           <div className="hidden md:flex items-center gap-6">
-            <a href="#dashboard" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2" data-testid="link-dashboard">
+            <button 
+              onClick={() => scrollToSection('dashboard')} 
+              className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2" 
+              data-testid="link-dashboard"
+            >
               <Home className="h-4 w-4" />
               Dashboard
-            </a>
-            <a href="#timer" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2" data-testid="link-timers">
+            </button>
+            <button 
+              onClick={() => scrollToSection('timer')} 
+              className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2" 
+              data-testid="link-timers"
+            >
               <Clock className="h-4 w-4" />
               Timers
-            </a>
-            <a href="#tasks" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2" data-testid="link-tasks">
+            </button>
+            <button 
+              onClick={() => scrollToSection('tasks')} 
+              className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2" 
+              data-testid="link-tasks"
+            >
               <CheckSquare className="h-4 w-4" />
               Tasks
-            </a>
-            <a href="#notes" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2" data-testid="link-notes">
+            </button>
+            <button 
+              onClick={() => scrollToSection('notes')} 
+              className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2" 
+              data-testid="link-notes"
+            >
               <StickyNote className="h-4 w-4" />
               Notes
-            </a>
-            <a href="#stats" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2" data-testid="link-stats">
+            </button>
+            <button 
+              onClick={() => scrollToSection('stats')} 
+              className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2" 
+              data-testid="link-stats"
+            >
               <BarChart3 className="h-4 w-4" />
               Stats
-            </a>
+            </button>
           </div>
           
           {/* Right actions */}
