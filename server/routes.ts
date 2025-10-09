@@ -51,7 +51,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/tasks', async (req: any, res) => {
     try {
       const userId = DEMO_USER_ID;
-      const taskData = insertTaskSchema.parse({ ...req.body, userId });
+      const body = { ...req.body, userId };
+      
+      // Convert dueDate string to Date if present
+      if (body.dueDate && typeof body.dueDate === 'string') {
+        body.dueDate = new Date(body.dueDate);
+      }
+      
+      const taskData = insertTaskSchema.parse(body);
       const task = await storage.createTask(taskData);
       res.json(task);
     } catch (error) {

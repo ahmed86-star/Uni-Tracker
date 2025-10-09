@@ -13,14 +13,72 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Task } from "@shared/schema";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Task, insertTaskSchema } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
+
+const createTaskSchema = insertTaskSchema.extend({
+  dueDate: z.string().optional(),
+});
+
+type CreateTaskInput = z.infer<typeof createTaskSchema>;
 
 export default function KanbanBoard() {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'board' | 'calendar'>('board');
   
-  const { data: tasks = [] } = useQuery({
+  const { data: tasks = [] } = useQuery<Task[]>({
     queryKey: ['/api/tasks'],
     enabled: !!user,
+  });
+
+  const createTaskMutation = useMutation({
+    mutationFn: async (data: CreateTaskInput) => {
+      return await apiRequest("POST", "/api/tasks", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
+      setIsCreateDialogOpen(false);
+      toast({
+        title: "Task created",
+        description: "Your task has been added successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create task. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   const updateTaskMutation = useMutation({
@@ -38,8 +96,32 @@ export default function KanbanBoard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
+      toast({
+        title: "Task deleted",
+        description: "Your task has been removed.",
+      });
     },
   });
+
+  const form = useForm<CreateTaskInput>({
+    resolver: zodResolver(createTaskSchema),
+    defaultValues: {
+      userId: user?.id || "demo-user",
+      title: "",
+      description: "",
+      status: "todo",
+      priority: "medium",
+      dueDate: "",
+    },
+  });
+
+  const onSubmit = (data: CreateTaskInput) => {
+    const taskData = {
+      ...data,
+      dueDate: data.dueDate ? data.dueDate : undefined,
+    };
+    createTaskMutation.mutate(taskData as CreateTaskInput);
+  };
 
   const todoTasks = tasks.filter((task: Task) => task.status === 'todo');
   const inProgressTasks = tasks.filter((task: Task) => task.status === 'in_progress');
@@ -204,41 +286,168 @@ export default function KanbanBoard() {
   };
 
   return (
-    <section className="mb-8" id="tasks">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Task Board</h2>
-        <div className="flex gap-2">
-          <Button variant="outline" data-testid="button-calendar-view">
-            <Calendar className="h-4 w-4 mr-2" />
-            Calendar View
-          </Button>
-          <Button data-testid="button-create-task">
-            <Plus className="h-4 w-4 mr-2" />
-            New Task
-          </Button>
+    <>
+      <section className="mb-8" id="tasks">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">Task Board</h2>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                const element = document.getElementById('calendar');
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              }}
+              data-testid="button-calendar-view"
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              Calendar View
+            </Button>
+            <Button 
+              onClick={() => setIsCreateDialogOpen(true)}
+              data-testid="button-create-task"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              New Task
+            </Button>
+          </div>
         </div>
-      </div>
-      
-      <div className="grid lg:grid-cols-3 gap-4">
-        <Column 
-          title="To Do" 
-          tasks={todoTasks} 
-          status="todo" 
-          color="bg-muted-foreground" 
-        />
-        <Column 
-          title="In Progress" 
-          tasks={inProgressTasks} 
-          status="in_progress" 
-          color="bg-secondary" 
-        />
-        <Column 
-          title="Done" 
-          tasks={doneTasks} 
-          status="done" 
-          color="bg-accent" 
-        />
-      </div>
-    </section>
+        
+        <div className="grid lg:grid-cols-3 gap-4">
+          <Column 
+            title="To Do" 
+            tasks={todoTasks} 
+            status="todo" 
+            color="bg-muted-foreground" 
+          />
+          <Column 
+            title="In Progress" 
+            tasks={inProgressTasks} 
+            status="in_progress" 
+            color="bg-secondary" 
+          />
+          <Column 
+            title="Done" 
+            tasks={doneTasks} 
+            status="done" 
+            color="bg-accent" 
+          />
+        </div>
+      </section>
+
+      {/* Create Task Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Create New Task</DialogTitle>
+            <DialogDescription>
+              Add a new task to your board. Set priority and due date to stay organized.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Title</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter task title..." {...field} data-testid="input-task-title" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Add task description..." 
+                        {...field} 
+                        value={field.value || ""}
+                        data-testid="input-task-description"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Priority</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger data-testid="select-task-priority">
+                            <SelectValue placeholder="Select priority" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="dueDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Due Date</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="date" 
+                          {...field} 
+                          value={field.value || ""}
+                          data-testid="input-task-due-date"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsCreateDialogOpen(false)}
+                  data-testid="button-cancel-task"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createTaskMutation.isPending}
+                  data-testid="button-submit-task"
+                >
+                  {createTaskMutation.isPending ? "Creating..." : "Create Task"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
